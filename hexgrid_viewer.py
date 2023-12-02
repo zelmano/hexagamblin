@@ -214,23 +214,29 @@ class HexGridViewer:
         ax.legend(handles=legend_patches, loc='center left', bbox_to_anchor=(1, 0.5))
         plt.show()
 
-
-
-def genererGrille(height, width):
+def genererGrille(height, width, terrain=None):
+    """
+    Genere une grille de hauteur height et de largeur width, avec une hauteur aleatoire pour chaque case
+    Si un terrain est spécifié, toute la grille est constituée de celui-ci
+    Sinon la génération est aléatoire
+    """
     nodes={}
-
     for i in range(height):
         for j in range(width):
             nodes[(i,j)]={}
-            nodes[(i,j)]["terrain"]=(choices(list(Terrain), [0.1, 0.3, 0.2, 0.2, 0.2])[0])
+            if terrain:
+                nodes[(i, j)]["terrain"]=terrain
+            else:
+                nodes[(i,j)]["terrain"]=(choices(list(Terrain), [0.1, 0.3, 0.2, 0.2, 0.2])[0])
             nodes[(i,j)]["altitude"] = randint(0,1000)
     return nodes
 
 
 class HexGraphe:
     def __init__(self, nodes, height, width):
-        self.nodes: Dict[Tuple[int, int]: Dict[str:int, str:int, str:List]] = nodes
+        self.nodes: Dict[Coords: Dict[str:int, str:int, str:List]] = nodes
         """
+        Coords = Tuple(int, int) 
         dictionnaire de noeuds :
         -ayant comme clé un tuple des coordonnées d'un noeud, 
         -ayant en valeur un dictionnaire d'information sur le noeud
@@ -256,15 +262,47 @@ class HexGraphe:
     def get_nodes(self):
         return list(self.nodes.keys())
 
-    def get_terrain(self,x,y):
+    def get_terrain(self,n):
+        x, y = n
         return self.nodes[(x,y)]["terrain"]
-    def get_altitude(self,x,y):
+    def get_altitude(self,n):
+        x, y = n
         return self.nodes[(x,y)]["altitude"]
 
+    def get_neighbors(self,n):
+        x,y = n
+        return self.nodes[(x, y)]["neighbors"]
     def __repr__(self):
         for cle, valeur in self.nodes.items():
             print(f"{cle}: {valeur}")
         return ""
+
+    def bfs_propagation(self, centre,long):
+        visited = []  # creation de la file des noeuds visités (gris)
+        visited.append(centre)
+        result = []
+        propa=[]
+        compt=0
+        neighbors_tmp = []
+        while compt<=long:
+            if not visited:
+                compt += 1
+                if compt>long:
+                    return propa
+                for i in neighbors_tmp:
+                    visited.append(i)
+                neighbors_tmp=[]
+            tmp = visited.pop(0)
+            propa.append((tmp, compt))
+            result.append(tmp)
+            fils = self.get_neighbors(tmp)
+
+            for i in fils:
+                if i not in visited and i not in result and i not in neighbors_tmp:
+                    neighbors_tmp.append((i))
+
+        return propa
+
 
 
 
@@ -320,23 +358,43 @@ def main():
     """
 
     #question 1,2,3 à remettre en ordre pour le rendu
-    #a=HexGraphe()
-    height = 5
+    """
+
+    height = 10
     width = 10
     grille = genererGrille(height,width)
-    a=HexGraphe(grille, height,width)
-    print(a)
+    graphe=HexGraphe(grille, height,width)
+    print(graphe)
 
     hex_grid = HexGridViewer(width,height)
 
-    for x,y in a.get_nodes():
-        hex_grid.add_color(x,y,a.get_terrain(x,y).value)
-        hex_grid.add_alpha(x, y, a.get_altitude(x,y)/2000 + 0.5) #permet d'avoir un coefficien alpha entre 0,5 et 1 pour une altitude allant de 0 à 1000
+    for x,y in graphe.get_nodes():
+        hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
+        hex_grid.add_alpha(x, y, graphe.get_altitude((x,y))/2000 + 0.5) #permet d'avoir un coefficien alpha entre 0,5 et 1 pour une altitude allant de 0 à 1000
 
     hex_grid.show(debug_coords=True)
-
+    """
     #question 4 (faut laisser au dessus et la faire à part)
+    
+    height = 10
+    width = 10
+    grille = genererGrille(height, width,terrain=Terrain.neige)
+    a = HexGraphe(grille, height, width)
+    print(a)
 
+    hex_grid = HexGridViewer(width, height)
+    
+    propa=a.bfs_propagation((4,4),3)
+    print(propa)
+    for coords, long in propa:
+        x,y=coords
+        hex_grid.add_color(x, y, 'red')
+        hex_grid.add_alpha(x,y,1-long*0.2)
+    hex_grid.show(debug_coords=True)
+
+
+
+    #question 6 faudra dfs --> on continue tant que l'altitude du voisin est plus basse
 if __name__ == "__main__":
     main()
 
