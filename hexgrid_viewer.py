@@ -229,7 +229,18 @@ def genererGrille(height, width):
 
 class HexGraphe:
     def __init__(self, nodes, height, width):
-        self.nodes: Dict[Tuple[int, int], Dict[int, int, List]] = nodes
+        self.nodes: Dict[Tuple[int, int]: Dict[str:int, str:int, str:List]] = nodes
+        """
+        dictionnaire de noeuds :
+        -ayant comme clé un tuple des coordonnées d'un noeud, 
+        -ayant en valeur un dictionnaire d'information sur le noeud
+            -de clés : 
+                -"terrain", valeur : Terrain (son type) : un des terrains parmis l'enum Terrain
+                -"altitude", valeur : int alitude allant de 0 à 1000
+                -"neighboors", valeur : liste des voisins
+        
+        {(x,y) : { "terrain":"xxx", "altitude":xxx, "neighboors":[(x,y),(x,y),(x,y)] }, pareil pour autre noeud }
+        """
         self.height = height
         self.width = width
         for node in self.get_nodes():
@@ -307,6 +318,8 @@ def main():
     # debug_coords permet de modifier l'affichage des coordonnées sur les cases.
     hex_grid.show(alias={"blue": "water", "white": "void", "grey": "rock"}, debug_coords=False)
     """
+
+    #question 1,2,3 à remettre en ordre pour le rendu
     #a=HexGraphe()
     height = 5
     width = 10
@@ -322,7 +335,7 @@ def main():
 
     hex_grid.show(debug_coords=True)
 
-
+    #question 4 (faut laisser au dessus et la faire à part)
 
 if __name__ == "__main__":
     main()
