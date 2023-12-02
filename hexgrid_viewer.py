@@ -247,6 +247,8 @@ class HexGraphe:
 
     def get_terrain(self,x,y):
         return self.nodes[(x,y)]["terrain"]
+    def get_altitude(self,x,y):
+        return self.nodes[(x,y)]["altitude"]
 
     def __repr__(self):
         for cle, valeur in self.nodes.items():
@@ -309,15 +311,16 @@ def main():
     height = 5
     width = 10
     grille = genererGrille(height,width)
-    a=HexGraphe(grille, height,width )
+    a=HexGraphe(grille, height,width)
     print(a)
 
     hex_grid = HexGridViewer(width,height)
 
     for x,y in a.get_nodes():
         hex_grid.add_color(x,y,a.get_terrain(x,y).value)
+        hex_grid.add_alpha(x, y, a.get_altitude(x,y)/2000 + 0.5) #permet d'avoir un coefficien alpha entre 0,5 et 1 pour une altitude allant de 0 à 1000
 
-    hex_grid.show(alias={"blue": "water", "white": "void", "grey": "rock"}, debug_coords=True)
+    hex_grid.show(debug_coords=True)
 
 
 
