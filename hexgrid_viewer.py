@@ -14,7 +14,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections import defaultdict
 
-import random
+from random import *
 from typing import Dict, Tuple, List
 
 import matplotlib.colors as mcolors
@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
+
+from Terrain import Terrain
 
 Coords = Tuple[int, int]  # un simple alias de typage python
 
@@ -138,7 +140,7 @@ class HexGridViewer:
             res = [(x + dx, y + dy) for dx, dy in ((1, 0), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1))]
         else:
             res = [(x + dx, y + dy) for dx, dy in ((1, 0), (1, 1), (0, 1), (-1, 0), (0, -1), (1, -1))]
-        return [(dx, dy) for dx, dy in res if 0 <= dx < self.__width and 0 <= dy < self.__height]
+        return [(dx, dy) for dx, dy in res if 0 <= dx < self.__height and 0 <= dy < self.__width]
 
     def show(self, alias: Dict[str, str] = None, debug_coords: bool = False) -> None:
         """
@@ -213,15 +215,61 @@ class HexGridViewer:
         plt.show()
 
 
+
+def genererGrille(height, width):
+    nodes={}
+
+    for i in range(height):
+        for j in range(width):
+            nodes[(i,j)]={}
+            nodes[(i,j)]["terrain"]=(choices(list(Terrain), [0.1, 0.3, 0.2, 0.2, 0.2])[0])
+            nodes[(i,j)]["altitude"] = randint(0,1000)
+    return nodes
+
+
+class HexGraphe:
+    def __init__(self, nodes, height, width):
+        self.nodes: Dict[Tuple[int, int], Dict[int, int, List]] = nodes
+        self.height = height
+        self.width = width
+        for node in self.get_nodes():
+            nodes[node]["neighbors"] = self.get_neighbours(node[0],node[1])
+
+    def get_neighbours(self, x: int, y: int) -> List[Coords]:
+        if y % 2 == 0:
+            res = [(x + dx, y + dy) for dx, dy in ((1, 0), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1))]
+        else:
+            res = [(x + dx, y + dy) for dx, dy in ((1, 0), (1, 1), (0, 1), (-1, 0), (0, -1), (1, -1))]
+        return [(dx, dy) for dx, dy in res if 0 <= dx < self.height and 0 <= dy < self.width]
+
+    def get_nodes(self):
+        return list(self.nodes.keys())
+
+    def get_terrain(self,x,y):
+        return self.nodes[(x,y)]["terrain"]
+
+    def __repr__(self):
+        for cle, valeur in self.nodes.items():
+            print(f"{cle}: {valeur}")
+        return ""
+
+
+
+
 def main():
     """
     Fonction exemple pour présenter le programme ci-dessus.
     """
+    """
+    EXEMPLE DU PROF : 
+    
     # CREATION D'UNE GRILLE 15x15
-    hex_grid = HexGridViewer(15, 15)
+    hex_grid = HexGridViewer(10, 20)
 
+    
     # MODIFICATION DE LA COULEUR D'UNE CASE
     # hex_grid.add_color(X, Y, color) où :
+    
     # - X et Y sont les coordonnées de l'hexagone et color la couleur associée à cet hexagone.
     hex_grid.add_color(5, 5, "purple")
     hex_grid.add_color(1, 0, "red")
@@ -236,11 +284,11 @@ def main():
 
     for _x, _y in hex_grid.get_neighbours(5, 5):
         hex_grid.add_color(_x, _y, "blue")
-        hex_grid.add_alpha(_x, _y, random.uniform(0.2, 1))
+        hex_grid.add_alpha(_x, _y, uniform(0.2, 1))
 
     for _x, _y in hex_grid.get_neighbours(1, 0):
         hex_grid.add_color(_x, _y, "pink")
-        hex_grid.add_alpha(_x, _y, random.uniform(0.2, 1))
+        hex_grid.add_alpha(_x, _y, uniform(0.2, 1))
 
     # AJOUT DE SYMBOLES SUR LES CASES : avec couleur et bordure
     # hex_grid.add_symbol(X, Y, FORME)
@@ -256,6 +304,21 @@ def main():
     # alias permet de renommer les noms de la légende pour des couleurs spécifiques.
     # debug_coords permet de modifier l'affichage des coordonnées sur les cases.
     hex_grid.show(alias={"blue": "water", "white": "void", "grey": "rock"}, debug_coords=False)
+    """
+    #a=HexGraphe()
+    height = 5
+    width = 10
+    grille = genererGrille(height,width)
+    a=HexGraphe(grille, height,width )
+    print(a)
+
+    hex_grid = HexGridViewer(width,height)
+
+    for x,y in a.get_nodes():
+        hex_grid.add_color(x,y,a.get_terrain(x,y).value)
+
+    hex_grid.show(alias={"blue": "water", "white": "void", "grey": "rock"}, debug_coords=True)
+
 
 
 if __name__ == "__main__":
