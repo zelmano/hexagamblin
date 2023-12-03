@@ -5,7 +5,7 @@ class Terrain(Enum):
     Liste des terrains possibles et la couleur associée
     """
     eau = 'blue'
-    herbe = 'green'
-    montagne = 'grey'
+    herbe = 'darkgreen'
+    montagne = 'dimgrey'
     neige = 'white'
     chemin = 'sienna'

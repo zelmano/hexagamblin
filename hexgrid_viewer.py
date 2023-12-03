@@ -262,6 +262,9 @@ class HexGraphe:
     def get_nodes(self):
         return list(self.nodes.keys())
 
+    def get_node(self,n):
+        return self.nodes[n]
+
     def get_terrain(self,n):
         x, y = n
         return self.nodes[(x,y)]["terrain"]
@@ -272,12 +275,37 @@ class HexGraphe:
     def get_neighbors(self,n):
         x,y = n
         return self.nodes[(x, y)]["neighbors"]
+
+    def get_max_altitude(self):
+        """
+        retourne le sommet le plus haut du graphe
+        """
+        max_altitude=0
+        highest_node=None
+        for node in self.get_nodes():
+            if self.nodes[node]["altitude"]>max_altitude:
+                highest_node=node
+                max_altitude = self.nodes[node]["altitude"]
+        return highest_node
+
+
+    def set_terrain(self,n,terrain):
+        x,y=n
+        self.nodes[(x,y)]["terrain"] = terrain
+
+    def set_altitude(self,n,altitude):
+        x, y = n
+        self.nodes[(x,y)]["altitude"] = altitude
+
     def __repr__(self):
         for cle, valeur in self.nodes.items():
             print(f"{cle}: {valeur}")
         return ""
 
     def bfs_propagation(self, centre,long):
+        """
+        Renvoie une liste de tuples (sommets,distance par rapport au centre)
+        """
         visited = []  # creation de la file des noeuds visités (gris)
         visited.append(centre)
         result = []
@@ -302,6 +330,26 @@ class HexGraphe:
                     neighbors_tmp.append((i))
 
         return propa
+
+    def propagation_terrain(self,centre,long,terrain):
+        """Recupère une liste de tuples (sommets, distance par rapport au centre)
+        Leur applique le terrain du centre et réduit leur altitude en fonction de leur distance par rapport au centre
+        """
+        propa = self.bfs_propagation(centre, long)
+        print(propa)
+        hauteur_max = self.get_altitude(centre)
+        #print(hauteur_max)
+
+        for coords, long in propa:
+            self.set_terrain(coords,terrain)
+
+            #baisse la hauteur de 200 par unité de distance puis rajoute une valeur aléatoire entre -100 et 100
+            # met la hauteur ou 0 si hauteur negative
+            self.set_altitude(coords, max(hauteur_max - long*200 + randint(-100,100), 0))
+            print(self.get_altitude(coords))
+
+
+
 
 
 
@@ -367,15 +415,17 @@ def main():
     print(graphe)
 
     hex_grid = HexGridViewer(width,height)
-
+    
+    #affichage de la grille :
+    
     for x,y in graphe.get_nodes():
         hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
-        hex_grid.add_alpha(x, y, graphe.get_altitude((x,y))/2000 + 0.5) #permet d'avoir un coefficien alpha entre 0,5 et 1 pour une altitude allant de 0 à 1000
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(3/4)) / 1000 + 0.25) #permet d'avoir un coefficien alpha entre 0,25 et 1 pour une altitude allant de 0 à 1000
 
     hex_grid.show(debug_coords=True)
     """
-    #question 4 (faut laisser au dessus et la faire à part)
-    
+    #question 4 (faut laisser au dessus et la faire à part, pareil pour chaque question)
+    """
     height = 10
     width = 10
     grille = genererGrille(height, width,terrain=Terrain.neige)
@@ -391,10 +441,52 @@ def main():
         hex_grid.add_color(x, y, 'red')
         hex_grid.add_alpha(x,y,1-long*0.2)
     hex_grid.show(debug_coords=True)
+    """
+    """
+    #adaptation avec des montagnes :
+    height = 20
+    width = 20
+    grille = genererGrille(height, width, terrain=Terrain.neige)
+    graphe = HexGraphe(grille, height, width)
+    print(graphe)
 
+    hex_grid = HexGridViewer(width, height)
+
+    graphe.propagation_terrain((4, 4), 3,Terrain.montagne)
+
+    graphe.propagation_terrain((15, 10), 2, Terrain.montagne)
+
+    for x, y in graphe.get_nodes():
+
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(4/5)) / 1000 + 0.2)
+    
+    hex_grid.show(debug_coords=False)
+    """
+    #question 5
+
+    height = 10
+    width = 10
+    grille = genererGrille(height, width)
+    graphe = HexGraphe(grille, height, width)
+    print(graphe)
+
+    sommet_max = graphe.get_max_altitude()
+    print(sommet_max)
+    print(graphe.get_node(sommet_max))
 
 
     #question 6 faudra dfs --> on continue tant que l'altitude du voisin est plus basse
+
+    """
+    idee pour quand on generera une map clean aléatoire : 
+    mettre herbe partout :
+    creer x montagnes aléatoirements avec pic le plus haut entre 700 et 1000
+    pour chaque sommet : -si altitude > 900 : mettre neige
+                         -si altitude < 400 : mettre herbe 
+    ensuite on rajoute des rivieres aléatoirement
+    """
+    
 if __name__ == "__main__":
     main()
 
