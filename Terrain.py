@@ -7,5 +7,5 @@ class Terrain(Enum):
     eau = 'blue'
     herbe = 'darkgreen'
     montagne = 'dimgrey'
-    neige = 'white'
+    neige = 'whitesmoke'
     chemin = 'sienna'

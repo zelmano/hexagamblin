@@ -120,6 +120,7 @@ class HexGridViewer:
             (x, y)] <= 1, f"alpha value must be between 0 and 1. What is {self.__alpha[(x, y)]} ?"
         self.__alpha[(x, y)] = alpha
 
+
     def add_symbol(self, x: int, y: int, symbol: Forme) -> None:
         self.__symbols[(x, y)] = symbol
 
@@ -142,7 +143,7 @@ class HexGridViewer:
             res = [(x + dx, y + dy) for dx, dy in ((1, 0), (1, 1), (0, 1), (-1, 0), (0, -1), (1, -1))]
         return [(dx, dy) for dx, dy in res if 0 <= dx < self.__height and 0 <= dy < self.__width]
 
-    def show(self, alias: Dict[str, str] = None, debug_coords: bool = False) -> None:
+    def show(self, hexgraph: HexGraphe, alias: Dict[str, str] = None, debug_coords: bool = False, show_altitude: bool = False) -> None:
         """
         Permet d'afficher via matplotlib la grille hexagonale. :param alias: dictionnaire qui permet de modifier le
         label d'une couleur. Ex: {"white": "snow"} :param debug_coords: booléen pour afficher les coordonnées des
@@ -168,13 +169,16 @@ class HexGridViewer:
 
                 center = (x, y)
                 hexagon = RegularPolygon(center, numVertices=6, radius=h, orientation=np.pi / 6,
-                                         edgecolor="black")
+                                         edgecolor="slategrey")
                 hexagon.set_facecolor(self.__colors[(row, col)])
                 hexagon.set_alpha(self.__alpha[(row, col)])
 
                 # Ajoute du texte à l'hexagone
                 if debug_coords:
                     text = f"({row}, {col})"  # Le texte que vous voulez afficher
+                    ax.annotate(text, xy=center, ha='center', va='center', fontsize=8, color='black')
+                if show_altitude:
+                    text = f"({hexgraph.nodes[row,col]['altitude']})"  # Le texte que vous voulez afficher
                     ax.annotate(text, xy=center, ha='center', va='center', fontsize=8, color='black')
 
                 # ajoute l'hexagone
@@ -226,9 +230,10 @@ def genererGrille(height, width, terrain=None):
             nodes[(i,j)]={}
             if terrain:
                 nodes[(i, j)]["terrain"]=terrain
+                nodes[(i, j)]["altitude"] = randint(0, 500)
             else:
                 nodes[(i,j)]["terrain"]=(choices(list(Terrain), [0.1, 0.3, 0.2, 0.2, 0.2])[0])
-            nodes[(i,j)]["altitude"] = randint(0,1000)
+                nodes[(i,j)]["altitude"] = randint(0,1000)
     return nodes
 
 
@@ -339,18 +344,98 @@ class HexGraphe:
         print(propa)
         hauteur_max = self.get_altitude(centre)
         #print(hauteur_max)
-
+        montee = 1
         for coords, long in propa:
-            self.set_terrain(coords,terrain)
+
 
             #baisse la hauteur de 200 par unité de distance puis rajoute une valeur aléatoire entre -100 et 100
             # met la hauteur ou 0 si hauteur negative
-            self.set_altitude(coords, max(hauteur_max - long*200 + randint(-100,100), 0))
-            print(self.get_altitude(coords))
 
+            if terrain==Terrain.montagne:
+                altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
+                print(altitude)
+                if altitude>900:
+                    self.set_altitude(coords, altitude)
+                    self.set_terrain(coords, Terrain.neige)
+                elif altitude>500:
+                    self.set_altitude(coords, altitude)
+                    self.set_terrain(coords, terrain)
+                    """
+                    met de l'herbe si plus bas mais c'est pas beau
+                else:
+                    self.set_altitude(coords, altitude)
+                    self.set_terrain(coords, Terrain.herbe)
+                    """
+            """
+            GENERER HERBE EN PROPAGATION MONTANTE ET DESCENDANTE CA MARCHE PAS
+            faudrait avoir constante hauteur à laquelle on fait + ou - X en fonction de montee, à chaque fois que long change
+            if terrain==Terrain.herbe:
+                altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
+                self.set_terrain(coords,Terrain.herbe)
+                self.set_altitude(coords, altitude)
+                if altitude>500:
+                    montee=-1
+                    print(montee)
 
+                if altitude==0:
+                    montee=1
+                    print(montee)
+            """
+            print("hauteur", self.get_altitude(coords))
 
+    def placer_montagnes(self,height,width):
+        nb_montagne = int(height*width/100)
+        print(nb_montagne)
+        for i in range(nb_montagne):
+            point=(randint(0,height-1),randint(0,width-1))
+            self.nodes[point]["altitude"]=randint(700,1000)
+            self.propagation_terrain(point,randint(2,4),Terrain.montagne)
 
+    def placer_herbe(self,height, width):
+        point=(height / 2, width / 2)
+        self.nodes[point]["altitude"]=randint(0,300)
+        self.propagation_terrain(point,max(height / 2, width / 2), Terrain.herbe)
+
+    def dfs_riviere(self, n):
+
+        visited = []  # creation de la pile des noeuds visités (gris)
+        visited.append(n)
+        result = []
+        pred = {}
+        pred[n]="/"
+        while visited:
+            tmp = visited.pop()
+            result.append(tmp)
+            fils = self.get_neighbors(tmp)
+            #print(visited)
+            for i in fils:
+                if i not in visited and i not in result and self.nodes[i]["altitude"]<=self.nodes[tmp]["altitude"]:
+                    pred[i] = tmp
+                    visited.append(i)
+        print("Prédécesseurs : ", pred)
+
+        liste=[]
+        print("result",result)
+        for i in result:
+            liste_tmp = []
+            while pred[i]!="/":
+                liste_tmp.append(i)
+                i=pred[i]
+            liste_tmp.append(i)
+            if len(liste_tmp)>len(liste):
+                liste=liste_tmp
+                print(liste)
+        print(liste)
+
+        for i in liste:
+            self.nodes[i]["terrain"]=Terrain.eau
+
+    def placer_riviere(self,height, width):
+        nb_riviere = int(height * width / 50)
+        print("nb riviere",nb_riviere)
+        for i in range(nb_riviere):
+            point = (randint(0, height - 1), randint(0, width - 1))
+            self.dfs_riviere(point)
 
 
 
@@ -463,6 +548,7 @@ def main():
     
     hex_grid.show(debug_coords=False)
     """
+    """
     #question 5
 
     height = 10
@@ -475,7 +561,7 @@ def main():
     print(sommet_max)
     print(graphe.get_node(sommet_max))
 
-
+    """
     #question 6 faudra dfs --> on continue tant que l'altitude du voisin est plus basse
 
     """
@@ -486,6 +572,26 @@ def main():
                          -si altitude < 400 : mettre herbe 
     ensuite on rajoute des rivieres aléatoirement
     """
+    height = 20
+    width = 20
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
+    print(graphe)
+
+    hex_grid = HexGridViewer(width, height)
+
+    #graphe.placer_herbe(height,width) marche pas
+    graphe.placer_montagnes(height,width)
+    graphe.placer_riviere(height,width)
+
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 4)) / 1000 + 0.25)
+
+
+    hex_grid.show(graphe,debug_coords=False, show_altitude=True)
+
     
 if __name__ == "__main__":
     main()
