@@ -143,7 +143,7 @@ class HexGridViewer:
             res = [(x + dx, y + dy) for dx, dy in ((1, 0), (1, 1), (0, 1), (-1, 0), (0, -1), (1, -1))]
         return [(dx, dy) for dx, dy in res if 0 <= dx < self.__height and 0 <= dy < self.__width]
 
-    def show(self, hexgraph: HexGraphe, alias: Dict[str, str] = None, debug_coords: bool = False, show_altitude: bool = False) -> None:
+    def show(self, hexgraph: HexGraphe=None, alias: Dict[str, str] = None, debug_coords: bool = False, show_altitude: bool = False) -> None:
         """
         Permet d'afficher via matplotlib la grille hexagonale. :param alias: dictionnaire qui permet de modifier le
         label d'une couleur. Ex: {"white": "snow"} :param debug_coords: booléen pour afficher les coordonnées des
@@ -360,12 +360,12 @@ class HexGraphe:
                 elif altitude>500:
                     self.set_altitude(coords, altitude)
                     self.set_terrain(coords, terrain)
-                    """
-                    met de l'herbe si plus bas mais c'est pas beau
+
+
                 else:
                     self.set_altitude(coords, altitude)
                     self.set_terrain(coords, Terrain.herbe)
-                    """
+
             """
             GENERER HERBE EN PROPAGATION MONTANTE ET DESCENDANTE CA MARCHE PAS
             faudrait avoir constante hauteur à laquelle on fait + ou - X en fonction de montee, à chaque fois que long change
@@ -384,7 +384,7 @@ class HexGraphe:
             print("hauteur", self.get_altitude(coords))
 
     def placer_montagnes(self,height,width):
-        nb_montagne = int(height*width/100)
+        nb_montagne = int(height*width/90)
         print(nb_montagne)
         for i in range(nb_montagne):
             point=(randint(0,height-1),randint(0,width-1))
@@ -562,7 +562,7 @@ def main():
     print(graphe.get_node(sommet_max))
 
     """
-    #question 6 faudra dfs --> on continue tant que l'altitude du voisin est plus basse
+    #question 6
 
     """
     idee pour quand on generera une map clean aléatoire : 
@@ -572,8 +572,8 @@ def main():
                          -si altitude < 400 : mettre herbe 
     ensuite on rajoute des rivieres aléatoirement
     """
-    height = 20
-    width = 20
+    height = 40
+    width = 40
     grille = genererGrille(height, width, terrain=Terrain.herbe)
     graphe = HexGraphe(grille, height, width)
     print(graphe)
@@ -585,12 +585,15 @@ def main():
     graphe.placer_riviere(height,width)
 
 
+
+
+
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 4)) / 1000 + 0.25)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2/5)
 
 
-    hex_grid.show(graphe,debug_coords=False, show_altitude=True)
+    hex_grid.show(graphe,debug_coords=False)
 
     
 if __name__ == "__main__":
