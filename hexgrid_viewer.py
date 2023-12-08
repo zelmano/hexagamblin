@@ -354,7 +354,7 @@ class HexGraphe:
             if terrain==Terrain.montagne:
                 altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
                 print(altitude)
-                if altitude>900:
+                if altitude>850:
                     self.set_altitude(coords, altitude)
                     self.set_terrain(coords, Terrain.neige)
                 elif altitude>500:
@@ -384,7 +384,7 @@ class HexGraphe:
             print("hauteur", self.get_altitude(coords))
 
     def placer_montagnes(self,height,width):
-        nb_montagne = int(height*width/90)
+        nb_montagne = int(height*width/80)
         print(nb_montagne)
         for i in range(nb_montagne):
             point=(randint(0,height-1),randint(0,width-1))
@@ -426,16 +426,21 @@ class HexGraphe:
                 liste=liste_tmp
                 print(liste)
         print(liste)
+        if len(liste)<=2:
+            return False
 
         for i in liste:
             self.nodes[i]["terrain"]=Terrain.eau
+        return True
 
     def placer_riviere(self,height, width):
         nb_riviere = int(height * width / 50)
         print("nb riviere",nb_riviere)
         for i in range(nb_riviere):
             point = (randint(0, height - 1), randint(0, width - 1))
-            self.dfs_riviere(point)
+            riviere=self.dfs_riviere(point)
+            if riviere==False:
+                i-=1
 
 
 
