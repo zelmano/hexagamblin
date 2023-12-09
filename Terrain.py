@@ -6,6 +6,6 @@ class Terrain(Enum):
     """
     eau = 'blue'
     herbe = 'darkgreen'
-    montagne = 'dimgrey'
+    montagne = '#2B2B2A'
     neige = 'whitesmoke'
     chemin = 'sienna'

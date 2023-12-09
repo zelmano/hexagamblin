@@ -360,12 +360,12 @@ class HexGraphe:
             if terrain==Terrain.montagne:
                 altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
                 print(altitude)
-                if altitude>850:
+                if altitude>800:
                     self.set_altitude(coords, altitude)
                     self.set_terrain(coords, Terrain.neige)
                 elif altitude>500:
                     self.set_altitude(coords, altitude)
-                    self.set_terrain(coords, terrain)
+                    self.set_terrain(coords, Terrain.montagne)
 
 
                 else:
@@ -484,9 +484,18 @@ class HexGraphe:
             F.remove(s)
             for i in self.get_neighbors(s):
                 if contraintes:
-                    if self.nodes[i]["terrain"]!=Terrain.eau and self.nodes[s]["terrain"]!=Terrain.eau:
-                        if d[i] > d[s] + 1 + abs(self.nodes[i]["altitude"] - self.nodes[s]["altitude"]):
-                            d[i] = d[s] + 1 + abs(self.nodes[i]["altitude"] - self.nodes[s]["altitude"])
+                    """
+                    1.5 * plus dure de monter que de descendre
+                    descendre ou monter 2 fois de 150 est plus simple que descendre d'un coup de 300
+                    
+                    """
+                    if self.nodes[s]["terrain"]!=Terrain.eau and self.nodes[i]!=Terrain.eau:
+                        poid = 2.5 if self.nodes[i]["terrain"]==Terrain.neige else (1.5 if self.nodes[i]["terrain"]==Terrain.montagne else 1)
+                        montee= 1 if self.nodes[i]["altitude"]<self.nodes[s]["altitude"] else 1.5
+                        poid+= ((((self.nodes[i]["altitude"] - self.nodes[s]["altitude"])/10)**2)*montee)/200
+                        print("difference = ",self.nodes[i]["altitude"] - self.nodes[s]["altitude"],", terrain = ",self.nodes[i]["terrain"],":",poid)
+                        if d[i] > d[s] + poid:
+                            d[i] = d[s] + poid
                             pred[i] = s
                 else:
                     if d[i] > d[s] + 1:
@@ -727,14 +736,22 @@ def main():
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
+
+        if graphe.nodes[(x,y)]["terrain"]==Terrain.herbe:
+            alpha=(graphe.get_altitude((x, y))*1.75 * (3 / 5)) / 1000 + 2 / 5
+        elif graphe.nodes[(x,y)]["terrain"]==Terrain.montagne:
+            alpha=((graphe.get_altitude((x, y))-300)*2 * (3/5)) / 1000 + 2/5
+        else:
+            alpha = (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5
+        hex_grid.add_alpha(x, y, alpha)
 
     for x, y in graphe.get_villes():
         hex_grid.add_symbol(x, y, Circle("darkred"))
 
     for chemin in graphe.get_pcc():
+        color = (random(), random(), random())
         for i in range(len(chemin) - 1):
-            hex_grid.add_link(chemin[i], chemin[i + 1], "black", thick=2)
+            hex_grid.add_link(chemin[i], chemin[i + 1], color, thick=2)
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
     
