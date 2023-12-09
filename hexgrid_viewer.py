@@ -493,7 +493,7 @@ class HexGraphe:
                         poid = 2.5 if self.nodes[i]["terrain"]==Terrain.neige else (1.5 if self.nodes[i]["terrain"]==Terrain.montagne else 1)
                         montee= 1 if self.nodes[i]["altitude"]<self.nodes[s]["altitude"] else 1.5
                         poid+= ((((self.nodes[i]["altitude"] - self.nodes[s]["altitude"])/10)**2)*montee)/200
-                        print("difference = ",self.nodes[i]["altitude"] - self.nodes[s]["altitude"],", terrain = ",self.nodes[i]["terrain"],":",poid)
+                        #print("difference = ",self.nodes[i]["altitude"] - self.nodes[s]["altitude"],", terrain = ",self.nodes[i]["terrain"],":",poid)
                         if d[i] > d[s] + poid:
                             d[i] = d[s] + poid
                             pred[i] = s
