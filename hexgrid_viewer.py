@@ -257,6 +257,7 @@ class HexGraphe:
         for node in self.get_nodes():
             nodes[node]["neighbors"] = self.get_neighbours(node[0],node[1])
 
+
     def get_neighbours(self, x: int, y: int) -> List[Coords]:
         if y % 2 == 0:
             res = [(x + dx, y + dy) for dx, dy in ((1, 0), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1))]
@@ -293,7 +294,8 @@ class HexGraphe:
                 max_altitude = self.nodes[node]["altitude"]
         return highest_node
 
-
+    def get_villes(self):
+        return list(self.villes.keys())
     def set_terrain(self,n,terrain):
         x,y=n
         self.nodes[(x,y)]["terrain"] = terrain
@@ -345,6 +347,7 @@ class HexGraphe:
         hauteur_max = self.get_altitude(centre)
         #print(hauteur_max)
         montee = 1
+        altitude = hauteur_max
         for coords, long in propa:
 
 
@@ -367,10 +370,11 @@ class HexGraphe:
                     self.set_terrain(coords, Terrain.herbe)
 
             """
-            GENERER HERBE EN PROPAGATION MONTANTE ET DESCENDANTE CA MARCHE PAS
-            faudrait avoir constante hauteur à laquelle on fait + ou - X en fonction de montee, à chaque fois que long change
+            #GENERER HERBE EN PROPAGATION MONTANTE ET DESCENDANTE CA MARCHE PAS
+            #faudrait avoir constante hauteur à laquelle on fait + ou - X en fonction de montee, à chaque fois que long change
             if terrain==Terrain.herbe:
-                altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
+                altitude = min(max(altitude + montee * randint(-100, 100), 0), 500)
+                print(altitude)
                 self.set_terrain(coords,Terrain.herbe)
                 self.set_altitude(coords, altitude)
                 if altitude>500:
@@ -381,7 +385,7 @@ class HexGraphe:
                     montee=1
                     print(montee)
             """
-            print("hauteur", self.get_altitude(coords))
+            #print("hauteur", self.get_altitude(coords))
 
     def placer_montagnes(self,height,width):
         nb_montagne = int(height*width/80)
@@ -441,6 +445,74 @@ class HexGraphe:
             riviere=self.dfs_riviere(point)
             if riviere==False:
                 i-=1
+
+    def placer_ville(self,height,width):
+        self.villes = {}
+        nb_ville = 4 + (height * width) // 400
+        i = 0  # Initialisation de la variable i en dehors de la boucle while
+        while i < nb_ville:
+            a, b = randint(0, height - 1), randint(0, width - 1)
+            if self.nodes[(a, b)]["terrain"] != Terrain.eau and (a, b) not in self.villes:
+                self.villes[(a, b)]={}
+                i += 1
+
+        print('villes : ', self.get_villes())
+        print(len(self.villes))
+
+    def djikstra(self,s0):
+        d={}
+        pred={}
+        for i in self.get_nodes():
+            d[i]=float('inf')
+            pred[i]=None
+
+        d[s0] = 0
+        s=s0
+        E=[]
+        F=self.get_nodes()
+        while F:
+            mini=float('inf')
+            for cle,valeur in d.items():
+                if cle not in E and valeur<=mini:
+                    mini=valeur
+                    s=cle
+
+            E.append(s)
+            F.remove(s)
+            for i in self.get_neighbors(s):
+                if d[i] > d[s] + 1:
+                    d[i] = d[s] + 1
+                    pred[i] = s
+
+        return pred,d
+
+    def pcc_ville_a_b(self,a,b,contraintes):
+        """
+        Va de b à a
+        """
+        pred, d = self.djikstra(a)
+        print(pred,d)
+        tmp=b
+        l=[]
+        while tmp!=a:
+
+            l.append(tmp)
+            tmp=pred[tmp]
+
+        l.append(a)
+        return l
+
+    def pcc_villes(self, contraintes=True):
+        self.l=[]
+        for i in self.get_villes():
+            for j in self.get_villes():
+                if i!=j:
+                    chemin = self.pcc_ville_a_b(j,i,contraintes)
+                    self.villes[i][j]=chemin
+                    self.l.append(chemin)
+        print(self.villes)
+
+
 
 
 
@@ -574,8 +646,9 @@ def main():
     mettre herbe partout :
     creer x montagnes aléatoirements avec pic le plus haut entre 700 et 1000
     pour chaque sommet : -si altitude > 900 : mettre neige
-                         -si altitude < 400 : mettre herbe 
+                         -si altitude < 500 : mettre herbe 
     ensuite on rajoute des rivieres aléatoirement
+    """
     """
     height = 40
     width = 40
@@ -585,7 +658,7 @@ def main():
 
     hex_grid = HexGridViewer(width, height)
 
-    #graphe.placer_herbe(height,width) marche pas
+    #graphe.placer_herbe(height,width)
     graphe.placer_montagnes(height,width)
     graphe.placer_riviere(height,width)
 
@@ -598,8 +671,37 @@ def main():
         hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2/5)
 
 
-    hex_grid.show(graphe,debug_coords=False)
+    hex_grid.show(graphe,debug_coords=False, show_altitude=False)
+    """
+    #question 7
+    height = 20
+    width = 20
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
 
+
+    hex_grid = HexGridViewer(width, height)
+
+    # graphe.placer_herbe(height,width)
+    graphe.placer_montagnes(height, width)
+    graphe.placer_riviere(height, width)
+
+    graphe.placer_ville(height,width)
+    graphe.pcc_villes()
+
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
+
+    for x,y in graphe.get_villes():
+        hex_grid.add_symbol(x, y, Circle("darkred"))
+
+    for chemin in graphe.l:
+        for i in range(len(chemin)-1):
+            hex_grid.add_link(chemin[i], chemin[i+1], "black",thick=2)
+
+    hex_grid.show(graphe, debug_coords=False, show_altitude=False)
     
 if __name__ == "__main__":
     main()
