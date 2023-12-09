@@ -296,6 +296,9 @@ class HexGraphe:
 
     def get_villes(self):
         return list(self.villes.keys())
+
+    def get_pcc(self):
+        return [self.villes[i][j] for i in self.get_villes() for j in self.get_villes() if i!=j]
     def set_terrain(self,n,terrain):
         x,y=n
         self.nodes[(x,y)]["terrain"] = terrain
@@ -388,7 +391,7 @@ class HexGraphe:
             #print("hauteur", self.get_altitude(coords))
 
     def placer_montagnes(self,height,width):
-        nb_montagne = int(height*width/80)
+        nb_montagne = 1+int(height*width/80)
         print(nb_montagne)
         for i in range(nb_montagne):
             point=(randint(0,height-1),randint(0,width-1))
@@ -438,7 +441,7 @@ class HexGraphe:
         return True
 
     def placer_riviere(self,height, width):
-        nb_riviere = int(height * width / 50)
+        nb_riviere = 1+int(height * width / 50)
         print("nb riviere",nb_riviere)
         for i in range(nb_riviere):
             point = (randint(0, height - 1), randint(0, width - 1))
@@ -459,7 +462,7 @@ class HexGraphe:
         print('villes : ', self.get_villes())
         print(len(self.villes))
 
-    def djikstra(self,s0):
+    def djikstra(self,s0,contraintes):
         d={}
         pred={}
         for i in self.get_nodes():
@@ -480,9 +483,15 @@ class HexGraphe:
             E.append(s)
             F.remove(s)
             for i in self.get_neighbors(s):
-                if d[i] > d[s] + 1:
-                    d[i] = d[s] + 1
-                    pred[i] = s
+                if contraintes:
+                    if self.nodes[i]["terrain"]!=Terrain.eau and self.nodes[s]["terrain"]!=Terrain.eau:
+                        if d[i] > d[s] + 1 + abs(self.nodes[i]["altitude"] - self.nodes[s]["altitude"]):
+                            d[i] = d[s] + 1 + abs(self.nodes[i]["altitude"] - self.nodes[s]["altitude"])
+                            pred[i] = s
+                else:
+                    if d[i] > d[s] + 1:
+                        d[i] = d[s] + 1
+                        pred[i] = s
 
         return pred,d
 
@@ -490,7 +499,7 @@ class HexGraphe:
         """
         Va de b à a
         """
-        pred, d = self.djikstra(a)
+        pred, d = self.djikstra(a,contraintes)
         print(pred,d)
         tmp=b
         l=[]
@@ -503,13 +512,11 @@ class HexGraphe:
         return l
 
     def pcc_villes(self, contraintes=True):
-        self.l=[]
         for i in self.get_villes():
             for j in self.get_villes():
                 if i!=j:
                     chemin = self.pcc_ville_a_b(j,i,contraintes)
                     self.villes[i][j]=chemin
-                    self.l.append(chemin)
         print(self.villes)
 
 
@@ -673,6 +680,7 @@ def main():
 
     hex_grid.show(graphe,debug_coords=False, show_altitude=False)
     """
+    """
     #question 7
     height = 20
     width = 20
@@ -687,8 +695,7 @@ def main():
     graphe.placer_riviere(height, width)
 
     graphe.placer_ville(height,width)
-    graphe.pcc_villes()
-
+    graphe.pcc_villes(contraintes=False)
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
@@ -697,11 +704,39 @@ def main():
     for x,y in graphe.get_villes():
         hex_grid.add_symbol(x, y, Circle("darkred"))
 
-    for chemin in graphe.l:
+    for chemin in graphe.get_pcc():
         for i in range(len(chemin)-1):
             hex_grid.add_link(chemin[i], chemin[i+1], "black",thick=2)
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=False)
+    """
+    #question 8
+    height = 10
+    width = 10
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
+
+    hex_grid = HexGridViewer(width, height)
+
+    # graphe.placer_herbe(height,width)
+    graphe.placer_montagnes(height, width)
+    graphe.placer_riviere(height, width)
+
+    graphe.placer_ville(height, width)
+    graphe.pcc_villes(contraintes=True)
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
+
+    for x, y in graphe.get_villes():
+        hex_grid.add_symbol(x, y, Circle("darkred"))
+
+    for chemin in graphe.get_pcc():
+        for i in range(len(chemin) - 1):
+            hex_grid.add_link(chemin[i], chemin[i + 1], "black", thick=2)
+
+    hex_grid.show(graphe, debug_coords=False, show_altitude=True)
     
 if __name__ == "__main__":
     main()
