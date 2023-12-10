@@ -169,7 +169,7 @@ class HexGridViewer:
 
                 center = (x, y)
                 hexagon = RegularPolygon(center, numVertices=6, radius=h, orientation=np.pi / 6,
-                                         edgecolor="slategrey")
+                                         edgecolor="none")
                 hexagon.set_facecolor(self.__colors[(row, col)])
                 hexagon.set_alpha(self.__alpha[(row, col)])
 
@@ -534,63 +534,12 @@ class HexGraphe:
 
 
 def main():
-    """
-    Fonction exemple pour présenter le programme ci-dessus.
-    """
-    """
-    EXEMPLE DU PROF : 
-    
-    # CREATION D'UNE GRILLE 15x15
-    hex_grid = HexGridViewer(10, 20)
-
-    
-    # MODIFICATION DE LA COULEUR D'UNE CASE
-    # hex_grid.add_color(X, Y, color) où :
-    
-    # - X et Y sont les coordonnées de l'hexagone et color la couleur associée à cet hexagone.
-    hex_grid.add_color(5, 5, "purple")
-    hex_grid.add_color(1, 0, "red")
-
-    # MODIFICATION DE LA TRANSPARENCE D'UNE CASE
-    # hex_grid.add_alpha(X, Y, alpha) où :
-    # - X et Y sont les coordonnées de l'hexagone et alpha la transparence associée à cet hexagone.
-    hex_grid.add_alpha(5, 5, 0.7)
-
-    # RECUPERATION DES VOISINS D'UNE CASE : ils sont entre 2 et 6.
-    # hex_grid.get_neighbours(X, Y)
-
-    for _x, _y in hex_grid.get_neighbours(5, 5):
-        hex_grid.add_color(_x, _y, "blue")
-        hex_grid.add_alpha(_x, _y, uniform(0.2, 1))
-
-    for _x, _y in hex_grid.get_neighbours(1, 0):
-        hex_grid.add_color(_x, _y, "pink")
-        hex_grid.add_alpha(_x, _y, uniform(0.2, 1))
-
-    # AJOUT DE SYMBOLES SUR LES CASES : avec couleur et bordure
-    # hex_grid.add_symbol(X, Y, FORME)
-    hex_grid.add_symbol(10, 8, Circle("red"))
-    hex_grid.add_symbol(9, 8, Rect("green"))
-    hex_grid.add_symbol(3, 4, Rect("pink", edgecolor="black"))
-
-    # AJOUT DE LIENS ENTRE LES CASES : avec couleur
-    hex_grid.add_link((5, 5), (6, 6), "red")
-    hex_grid.add_link((8, 8), (7, 8), "purple", thick=4)
-
-    # AFFICHAGE DE LA GRILLE
-    # alias permet de renommer les noms de la légende pour des couleurs spécifiques.
-    # debug_coords permet de modifier l'affichage des coordonnées sur les cases.
-    hex_grid.show(alias={"blue": "water", "white": "void", "grey": "rock"}, debug_coords=False)
-    """
-
     #question 1,2,3 à remettre en ordre pour le rendu
-    """
-
+    
     height = 10
     width = 10
     grille = genererGrille(height,width)
     graphe=HexGraphe(grille, height,width)
-    print(graphe)
 
     hex_grid = HexGridViewer(width,height)
     
@@ -600,8 +549,12 @@ def main():
         hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
         hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(3/4)) / 1000 + 0.25) #permet d'avoir un coefficien alpha entre 0,25 et 1 pour une altitude allant de 0 à 1000
 
-    hex_grid.show(debug_coords=True)
-    """
+    #dictionnaire d'alias couleur nom de terrain pour la légende
+    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+
+    # Affichage du graphe avec la légende automatiquement générée
+    hex_grid.show(alias=alias_terrains, debug_coords=False)
+    
     #question 4 (faut laisser au dessus et la faire à part, pareil pour chaque question)
     """
     height = 10
@@ -720,6 +673,8 @@ def main():
     hex_grid.show(graphe, debug_coords=False, show_altitude=False)
     """
     #question 8
+
+    """
     height = 10
     width = 10
     grille = genererGrille(height, width, terrain=Terrain.herbe)
@@ -754,6 +709,8 @@ def main():
             hex_grid.add_link(chemin[i], chemin[i + 1], color, thick=2)
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
+
+    """
     
 if __name__ == "__main__":
     main()
