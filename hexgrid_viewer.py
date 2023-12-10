@@ -547,7 +547,7 @@ def main():
     
     for x,y in graphe.get_nodes():
         hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(3/4)) / 1000 + 0.25) #permet d'avoir un coefficien alpha entre 0,25 et 1 pour une altitude allant de 0 à 1000
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(1/2)) / 1000 + 0.5) #permet d'avoir un coefficien alpha entre 0,25 et 1 pour une altitude allant de 0 à 1000
 
     #dictionnaire d'alias couleur nom de terrain pour la légende
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
