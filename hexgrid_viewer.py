@@ -168,8 +168,7 @@ class HexGridViewer:
                 coords[(row, col)] = (x, y)
 
                 center = (x, y)
-                hexagon = RegularPolygon(center, numVertices=6, radius=h, orientation=np.pi / 6,
-                                         edgecolor="none")
+                hexagon = RegularPolygon(center, numVertices=6, radius=h, orientation=np.pi / 6, edgecolor="none")
                 hexagon.set_facecolor(self.__colors[(row, col)])
                 hexagon.set_alpha(self.__alpha[(row, col)])
 
@@ -346,7 +345,7 @@ class HexGraphe:
         Leur applique le terrain du centre et réduit leur altitude en fonction de leur distance par rapport au centre
         """
         propa = self.bfs_propagation(centre, long)
-        print(propa)
+        #print(propa)
         hauteur_max = self.get_altitude(centre)
         #print(hauteur_max)
         montee = 1
@@ -359,7 +358,7 @@ class HexGraphe:
 
             if terrain==Terrain.montagne:
                 altitude = min(max(hauteur_max - montee * long * 150 + randint(-100, 100), 0), 1000)
-                print(altitude)
+                #print(altitude)
                 if altitude>800:
                     self.set_altitude(coords, altitude)
                     self.set_terrain(coords, Terrain.neige)
@@ -392,7 +391,7 @@ class HexGraphe:
 
     def placer_montagnes(self,height,width):
         nb_montagne = 1+int(height*width/80)
-        print(nb_montagne)
+        #print(nb_montagne)
         for i in range(nb_montagne):
             point=(randint(0,height-1),randint(0,width-1))
             self.nodes[point]["altitude"]=randint(700,1000)
@@ -410,6 +409,10 @@ class HexGraphe:
         result = []
         pred = {}
         pred[n]="/"
+
+        proba_embranch=0.01
+        branches=[]
+
         while visited:
             tmp = visited.pop()
             result.append(tmp)
@@ -419,10 +422,20 @@ class HexGraphe:
                 if i not in visited and i not in result and self.nodes[i]["altitude"]<=self.nodes[tmp]["altitude"]:
                     pred[i] = tmp
                     visited.append(i)
-        print("Prédécesseurs : ", pred)
 
+                    if random() < proba_embranch:
+                        branches.append(i)
+
+        #print("Prédécesseurs : ", pred)
+
+        #embranchements
+        for i in branches:
+            if random()<proba_embranch and len(visited)>0:
+                self.dfs_riviere(i)
+
+        #rivière principale
         liste=[]
-        print("result",result)
+        #print("result",result)
         for i in result:
             liste_tmp = []
             while pred[i]!="/":
@@ -431,8 +444,8 @@ class HexGraphe:
             liste_tmp.append(i)
             if len(liste_tmp)>len(liste):
                 liste=liste_tmp
-                print(liste)
-        print(liste)
+                #print(liste)
+        #print(liste)
         if len(liste)<=2:
             return False
 
@@ -442,12 +455,22 @@ class HexGraphe:
 
     def placer_riviere(self,height, width):
         nb_riviere = 1+int(height * width / 50)
-        print("nb riviere",nb_riviere)
+        #print("nb riviere",nb_riviere)
+
+        """
         for i in range(nb_riviere):
             point = (randint(0, height - 1), randint(0, width - 1))
             riviere=self.dfs_riviere(point)
             if riviere==False:
                 i-=1
+        """
+
+        nb_rivieres_placees=0
+        while nb_rivieres_placees < nb_riviere:
+            point = (randint(0, height - 1), randint(0, width - 1))
+            if self.dfs_riviere(point):
+                nb_rivieres_placees += 1#on compte que les succes de plaçage de rivière
+
 
     def placer_ville(self,height,width):
         self.villes = {}
@@ -534,45 +557,50 @@ class HexGraphe:
 
 
 def main():
-    #question 1,2,3 à remettre en ordre pour le rendu
-    
+
+
+    #questions 1, 2 et 3
+    #ok
+    """
     height = 10
     width = 10
+    alpha_spread = 0.5
     grille = genererGrille(height,width)
-    graphe=HexGraphe(grille, height,width)
+    graphe = HexGraphe(grille,height,width)
 
     hex_grid = HexGridViewer(width,height)
     
     #affichage de la grille :
-    
     for x,y in graphe.get_nodes():
         hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(1/2)) / 1000 + 0.5) #permet d'avoir un coefficien alpha entre 0,25 et 1 pour une altitude allant de 0 à 1000
+        #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
 
     #dictionnaire d'alias couleur nom de terrain pour la légende
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+    hex_grid.show(alias=alias_terrains)
+    """
 
-    # Affichage du graphe avec la légende automatiquement générée
-    hex_grid.show(alias=alias_terrains, debug_coords=False)
-    
+
     #question 4 (faut laisser au dessus et la faire à part, pareil pour chaque question)
     """
     height = 10
     width = 10
-    grille = genererGrille(height, width,terrain=Terrain.neige)
-    a = HexGraphe(grille, height, width)
-    print(a)
+    grille = genererGrille(height,width,terrain=Terrain.herbe)
+    a = HexGraphe(grille,height,width)
 
-    hex_grid = HexGridViewer(width, height)
+    hex_grid = HexGridViewer(width,height)
     
     propa=a.bfs_propagation((4,4),3)
-    print(propa)
+    #print(propa)
     for coords, long in propa:
         x,y=coords
         hex_grid.add_color(x, y, 'red')
         hex_grid.add_alpha(x,y,1-long*0.2)
     hex_grid.show(debug_coords=True)
     """
+    
+
     """
     #adaptation avec des montagnes :
     height = 20
@@ -594,9 +622,12 @@ def main():
     
     hex_grid.show(debug_coords=False)
     """
-    """
-    #question 5
 
+
+
+    #question 5a
+    #ok
+    """
     height = 10
     width = 10
     grille = genererGrille(height, width)
@@ -606,8 +637,16 @@ def main():
     sommet_max = graphe.get_max_altitude()
     print(sommet_max)
     print(graphe.get_node(sommet_max))
-
     """
+
+    #question 5b
+    #ok
+    """
+    parcours en profondeur (DFS)
+    """
+
+
+
     #question 6
 
     """
@@ -618,12 +657,23 @@ def main():
                          -si altitude < 500 : mettre herbe 
     ensuite on rajoute des rivieres aléatoirement
     """
-    """
+
+
+
+    
+    #affichage de la grille :
+    #for x,y in graphe.get_nodes():
+        #hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
+        #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
+        #hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
+    
+
+
     height = 40
     width = 40
+    #alpha_spread = 0.5
     grille = genererGrille(height, width, terrain=Terrain.herbe)
     graphe = HexGraphe(grille, height, width)
-    print(graphe)
 
     hex_grid = HexGridViewer(width, height)
 
@@ -632,16 +682,15 @@ def main():
     graphe.placer_riviere(height,width)
 
 
-
-
-
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
         hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2/5)
 
+    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+    hex_grid.show(graphe,debug_coords=False, show_altitude=False, alias=alias_terrains)
+    
 
-    hex_grid.show(graphe,debug_coords=False, show_altitude=False)
-    """
+
     """
     #question 7
     height = 20
