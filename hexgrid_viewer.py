@@ -474,7 +474,7 @@ class HexGraphe:
 
     def placer_ville(self,height,width):
         self.villes = {}
-        nb_ville = 4 + (height * width) // 400
+        nb_ville = 4 #+ (height * width) // 400
         i = 0  # Initialisation de la variable i en dehors de la boucle while
         while i < nb_ville:
             a, b = randint(0, height - 1), randint(0, width - 1)
@@ -667,8 +667,8 @@ def main():
         #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
         #hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
     
-
-
+    """
+    
     height = 40
     width = 40
     #alpha_spread = 0.5
@@ -689,7 +689,7 @@ def main():
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe,debug_coords=False, show_altitude=False, alias=alias_terrains)
     
-
+    """
 
     """
     #question 7
@@ -723,7 +723,7 @@ def main():
     """
     #question 8
 
-    """
+    
     height = 10
     width = 10
     grille = genererGrille(height, width, terrain=Terrain.herbe)
@@ -759,7 +759,7 @@ def main():
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
 
-    """
+    
     
 if __name__ == "__main__":
     main()
