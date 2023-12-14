@@ -298,7 +298,7 @@ class HexGraphe:
         return list(self.villes.keys())
 
     def get_pcc(self):
-        return [self.villes[i][j] for i in self.get_villes() for j in self.get_villes() if i!=j]
+        return [self.villes[i][j]["chemin"] for i in self.get_villes() for j in self.get_villes() if i!=j]
     def set_terrain(self,n,terrain):
         x,y=n
         self.nodes[(x,y)]["terrain"] = terrain
@@ -310,6 +310,8 @@ class HexGraphe:
     def __repr__(self):
         for cle, valeur in self.nodes.items():
             print(f"{cle}: {valeur}")
+        if self.villes:
+            print(self.villes)
         return ""
 
     def bfs_propagation(self, centre,long):
@@ -466,24 +468,83 @@ class HexGraphe:
         print(pred,d)
         tmp=b
         l=[]
+        poid=0
         while tmp!=a:
 
             l.append(tmp)
+            poid+=d[tmp] #faire un return l,d et adapter le reste du code
             tmp=pred[tmp]
 
         l.append(a)
-        return l
+        poid+=d[a]
+        return l,poid
 
     def pcc_villes(self, contraintes=True):
         for i in self.get_villes():
             for j in self.get_villes():
                 if i!=j:
-                    chemin = self.pcc_ville_a_b(j,i,contraintes)
-                    self.villes[i][j]=chemin
+                    chemin,poid = self.pcc_ville_a_b(j,i,contraintes)
+                    self.villes[i][j]={}
+                    self.villes[i][j]["chemin"] = chemin
+                    self.villes[i][j]["poid"] = poid
+
         print(self.villes)
 
 
+    def kruskalbien(self):
+        temp = HexGraphe(self.nodes, self.height, self.width)
+        temp.villes={}
+        for i in self.get_villes():
+            temp.villes[i]={}
+        #temp.print()
 
+        uf = UnionFind()
+        l=[]
+        chemin=[]
+        for i in self.get_villes():
+            uf.makeSet(i)
+
+        #LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        print("aaa")
+        liste_villes=self.get_villes()
+        for i in range(len(self.villes)):
+
+            for j in range(i):
+
+                print(self.villes[liste_villes[i]][liste_villes[j]])
+                if self.villes[liste_villes[i]][liste_villes[j]]["poid"] != 0:
+                    l.append((liste_villes[j], liste_villes[i], self.villes[liste_villes[i]][liste_villes[j]]["poid"],self.villes[liste_villes[i]][liste_villes[j]]["chemin"]))
+        tri = sorted(l, key=lambda li: li[2])
+        #print(tri)
+
+
+        for i in tri:
+            if uf.find(i[0])!=uf.find(i[1]):
+                temp.villes[i[0]][i[1]]={}
+                temp.villes[i[0]][i[1]]["poid"]=i[2]
+                temp.villes[i[0]][i[1]]["chemin"]=i[3]
+                uf.union(i[0],i[1])
+                chemin.append(i)
+
+        return chemin
+
+
+class UnionFind():
+    def __init__(self):
+        self.parent={}
+
+    def makeSet(self,x):
+        self.parent[x]= None
+
+    def find(self,x):
+        if self.parent[x] is None:
+            return x
+        return self.find(self.parent[x])
+
+    def union(self,x,y):
+        xr, yr = self.find(x), self.find(y)
+        if xr!=yr:
+            self.parent[xr]=yr
 
 
 
@@ -598,8 +659,8 @@ def main():
         #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
         #hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
     
-    
-    
+
+    """
     height = 40
     width = 40
     #alpha_spread = 0.5
@@ -610,9 +671,8 @@ def main():
 
     #graphe.placer_herbe(height,width)
     graphe.placer_montagnes(height,width)
+    graphe.placer_riviere(height,width)
 
-    riviere = Riviere(graphe) 
-    riviere.placer_riviere(height,width)
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
@@ -621,7 +681,9 @@ def main():
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe,debug_coords=False, show_altitude=False, alias=alias_terrains)
     
-    
+
+    """
+
 
     """
     #question 7
@@ -656,7 +718,6 @@ def main():
     #question 8
 
     """
-    
     height = 10
     width = 10
     grille = genererGrille(height, width, terrain=Terrain.herbe)
@@ -692,11 +753,61 @@ def main():
         for i in range(len(chemin) - 1):
             hex_grid.add_link(chemin[i], chemin[i + 1], color, thick=2)
 
+
+    #print(graphe)
+    hex_grid.show(graphe, debug_coords=False, show_altitude=True)
+    """
+
+    #question 9
+
+    height = 10
+    width = 10
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
+
+    hex_grid = HexGridViewer(width, height)
+
+    # graphe.placer_herbe(height,width)
+    graphe.placer_montagnes(height, width)
+    riviere = Riviere(graphe)
+    riviere.placer_riviere(height, width)
+
+    graphe.placer_ville(height, width)
+    graphe.pcc_villes(contraintes=True)
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+
+        if graphe.nodes[(x, y)]["terrain"] == Terrain.herbe:
+            alpha = (graphe.get_altitude((x, y)) * 1.75 * (3 / 5)) / 1000 + 2 / 5
+        elif graphe.nodes[(x, y)]["terrain"] == Terrain.montagne:
+            alpha = ((graphe.get_altitude((x, y)) - 300) * 2 * (3 / 5)) / 1000 + 2 / 5
+        else:
+            alpha = (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5
+        hex_grid.add_alpha(x, y, alpha)
+
+    for x, y in graphe.get_villes():
+        hex_grid.add_symbol(x, y, Circle("darkred"))
+
+    for chemin in graphe.get_pcc():
+        # color = (random(), random(), random())
+        for i in range(len(chemin) - 1):
+            hex_grid.add_link(chemin[i], chemin[i + 1], "black", thick=3)
+
+    chemins = graphe.kruskalbien()
+    for chemin in chemins:
+        print(chemin)
+        path = chemin[3]
+        for i in range(len(path) - 1):
+            hex_grid.add_link(path[i], path[i + 1], "red", thick=1)
+
+    # print(graphe)
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
 
-    """
+
+
     
-    
+
 if __name__ == "__main__":
     main()
 
