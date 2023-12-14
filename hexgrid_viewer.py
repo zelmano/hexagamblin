@@ -25,6 +25,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
 from Terrain import Terrain
+from Rivieres import Riviere
 
 Coords = Tuple[int, int]  # un simple alias de typage python
 
@@ -402,76 +403,6 @@ class HexGraphe:
         self.nodes[point]["altitude"]=randint(0,300)
         self.propagation_terrain(point,max(height / 2, width / 2), Terrain.herbe)
 
-    def dfs_riviere(self, n):
-
-        visited = []  # creation de la pile des noeuds visités (gris)
-        visited.append(n)
-        result = []
-        pred = {}
-        pred[n]="/"
-
-        proba_embranch=0.01
-        branches=[]
-
-        while visited:
-            tmp = visited.pop()
-            result.append(tmp)
-            fils = self.get_neighbors(tmp)
-            #print(visited)
-            for i in fils:
-                if i not in visited and i not in result and self.nodes[i]["altitude"]<=self.nodes[tmp]["altitude"]:
-                    pred[i] = tmp
-                    visited.append(i)
-
-                    if random() < proba_embranch:
-                        branches.append(i)
-
-        #print("Prédécesseurs : ", pred)
-
-        #embranchements
-        for i in branches:
-            if random()<proba_embranch and len(visited)>0:
-                self.dfs_riviere(i)
-
-        #rivière principale
-        liste=[]
-        #print("result",result)
-        for i in result:
-            liste_tmp = []
-            while pred[i]!="/":
-                liste_tmp.append(i)
-                i=pred[i]
-            liste_tmp.append(i)
-            if len(liste_tmp)>len(liste):
-                liste=liste_tmp
-                #print(liste)
-        #print(liste)
-        if len(liste)<=2:
-            return False
-
-        for i in liste:
-            self.nodes[i]["terrain"]=Terrain.eau
-        return True
-
-    def placer_riviere(self,height, width):
-        nb_riviere = 1+int(height * width / 50)
-        #print("nb riviere",nb_riviere)
-
-        """
-        for i in range(nb_riviere):
-            point = (randint(0, height - 1), randint(0, width - 1))
-            riviere=self.dfs_riviere(point)
-            if riviere==False:
-                i-=1
-        """
-
-        nb_rivieres_placees=0
-        while nb_rivieres_placees < nb_riviere:
-            point = (randint(0, height - 1), randint(0, width - 1))
-            if self.dfs_riviere(point):
-                nb_rivieres_placees += 1#on compte que les succes de plaçage de rivière
-
-
     def placer_ville(self,height,width):
         self.villes = {}
         nb_ville = 4 #+ (height * width) // 400
@@ -667,7 +598,7 @@ def main():
         #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
         #hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
     
-    """
+    
     
     height = 40
     width = 40
@@ -679,8 +610,9 @@ def main():
 
     #graphe.placer_herbe(height,width)
     graphe.placer_montagnes(height,width)
-    graphe.placer_riviere(height,width)
 
+    riviere = Riviere(graphe) 
+    riviere.placer_riviere(height,width)
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
@@ -689,7 +621,7 @@ def main():
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe,debug_coords=False, show_altitude=False, alias=alias_terrains)
     
-    """
+    
 
     """
     #question 7
@@ -723,6 +655,7 @@ def main():
     """
     #question 8
 
+    """
     
     height = 10
     width = 10
@@ -733,7 +666,9 @@ def main():
 
     # graphe.placer_herbe(height,width)
     graphe.placer_montagnes(height, width)
-    graphe.placer_riviere(height, width)
+
+    riviere=Riviere(graphe)
+    riviere.placer_riviere(height,width)
 
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=True)
@@ -759,6 +694,7 @@ def main():
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
 
+    """
     
     
 if __name__ == "__main__":

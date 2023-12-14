@@ -9,7 +9,6 @@ class Riviere:
     def dfs_riviere(self,n,proba_embranch=None):
         if proba_embranch==None:
             proba_embranch=self.proba_embranch
-        branches=[]
 
         visited = []  # creation de la pile des noeuds visités (gris)
         visited.append(n)
@@ -17,14 +16,16 @@ class Riviere:
         pred = {}
         pred[n]="/"
 
+        branches=[]
+
         while visited:
             tmp = visited.pop()
             result.append(tmp)
-            #fils = self.get_neighbors(tmp)
             fils = self.hexgrid.get_neighbors(tmp)
             #print(visited)
             for i in fils:
-                if i not in visited and i not in result and self.nodes[i]["altitude"]<=self.nodes[tmp]["altitude"]:
+                #if i not in visited and i not in result and self.nodes[i]["altitude"]<=self.nodes[tmp]["altitude"]:
+                if i not in visited and i not in result and self.hexgrid.get_altitude(i)<=self.hexgrid.get_altitude(tmp):
                     pred[i] = tmp
                     visited.append(i)
 
@@ -34,9 +35,9 @@ class Riviere:
         #print("Prédécesseurs : ", pred)
 
         #embranchements
-        for i in branches:
+        for b in branches:
             if random()<proba_embranch and len(visited)>0:
-                self.dfs_riviere(i)
+                self.dfs_riviere(b,proba_embranch)
 
         #rivière principale
         liste=[]
@@ -51,15 +52,24 @@ class Riviere:
                 liste=liste_tmp
                 #print(liste)
         #print(liste)
-        if len(liste)<=2:
-            return False
 
-        for i in liste:
-            self.nodes[i]["terrain"]=Terrain.eau
-        return True
+        
+        # if len(liste)<=2:
+        #     return False
+
+        # for i in liste:
+        #     self.nodes[i]["terrain"]=Terrain.eau
+        # return True
+
+        if len(liste) > 4:
+            for i in liste:
+                self.hexgrid.set_terrain(i, Terrain.eau)
+            return True
+
+        return False
 
     def placer_riviere(self,height, width):
-        nb_riviere = 1+int(height * width / 50)
+        nb_riviere = 1+int(height * width / 100)
         #print("nb riviere",nb_riviere)
 
         """
