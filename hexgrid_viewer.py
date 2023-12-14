@@ -760,8 +760,8 @@ def main():
 
     #question 9
 
-    height = 10
-    width = 10
+    height = 20
+    width =20
     grille = genererGrille(height, width, terrain=Terrain.herbe)
     graphe = HexGraphe(grille, height, width)
 
@@ -772,9 +772,10 @@ def main():
     riviere = Riviere(graphe)
     riviere.placer_riviere(height, width)
 
+    """
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=True)
-
+    """
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
 
@@ -785,9 +786,10 @@ def main():
         else:
             alpha = (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5
         hex_grid.add_alpha(x, y, alpha)
-
+    """
     for x, y in graphe.get_villes():
         hex_grid.add_symbol(x, y, Circle("darkred"))
+
 
     for chemin in graphe.get_pcc():
         # color = (random(), random(), random())
@@ -800,9 +802,10 @@ def main():
         path = chemin[3]
         for i in range(len(path) - 1):
             hex_grid.add_link(path[i], path[i + 1], "red", thick=1)
-
+    """
     # print(graphe)
-    hex_grid.show(graphe, debug_coords=False, show_altitude=True)
+    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+    hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
 
 
 

@@ -4,9 +4,9 @@ from Terrain import Terrain
 class Riviere:
     def __init__(self, hexgrid):
         self.hexgrid = hexgrid
-        self.proba_embranch = 0.01
+        self.proba_embranch = 0.1
 
-    def dfs_riviere(self,n,proba_embranch=None):
+    def dfs_riviere(self,n,proba_embranch=None,embr=False):
         if proba_embranch==None:
             proba_embranch=self.proba_embranch
 
@@ -31,13 +31,18 @@ class Riviere:
 
                     if random() < proba_embranch:
                         branches.append(i)
+                    else:
+                        proba_embranch+=0.1
 
         #print("Prédécesseurs : ", pred)
 
         #embranchements
+        proba_embranch=0.1
         for b in branches:
-            if random()<proba_embranch and len(visited)>0:
-                self.dfs_riviere(b,proba_embranch)
+            proba_embranch += 0.1
+            if random()<proba_embranch:
+                self.dfs_riviere(b,proba_embranch,embr=True)
+
 
         #rivière principale
         liste=[]
@@ -61,12 +66,17 @@ class Riviere:
         #     self.nodes[i]["terrain"]=Terrain.eau
         # return True
 
+        if embr==True:
+            for i in liste:
+                self.hexgrid.set_terrain(i, Terrain.eau)
+            return True
         if len(liste) > 4:
             for i in liste:
                 self.hexgrid.set_terrain(i, Terrain.eau)
             return True
 
         return False
+
 
     def placer_riviere(self,height, width):
         nb_riviere = 1+int(height * width / 100)
