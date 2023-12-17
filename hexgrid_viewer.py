@@ -410,7 +410,7 @@ class HexGraphe:
 
     def placer_ville(self,height,width):
         self.villes = {}
-        nb_ville = 4 #+ (height * width) // 400
+        nb_ville = 6 #+ (height * width) // 400
         i = 0  # Initialisation de la variable i en dehors de la boucle while
         while i < nb_ville:
             a, b = randint(0, height - 1), randint(0, width - 1)
@@ -634,12 +634,6 @@ def question5b():
     hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
 
 def question6():
-    """pour generer une map clean aléatoire :
-    mettre herbe partout :
-    creer x montagnes aléatoirements avec pic le plus haut entre 700 et 1000
-    pour chaque sommet : -si altitude > 800 : mettre neige
-                         -si altitude < 500 : mettre herbe
-    ensuite on rajoute des rivieres aléatoirement"""
     height = 40
     width = 40
     # alpha_spread = 0.5
@@ -673,12 +667,12 @@ def question7():
     riviere = Riviere(graphe)
     riviere.placer_riviere(height, width)
 
-    start_time = time.time()
+    # start_time = time.time()
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=False)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print("Temps d'exécution: ", execution_time, "secondes")
+    # end_time = time.time()
+    # execution_time = end_time - start_time
+    # print("Temps d'exécution: ", execution_time, "secondes")
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
@@ -694,8 +688,8 @@ def question7():
     hex_grid.show(graphe, debug_coords=False, show_altitude=False)
 
 def question8():
-    height = 10
-    width = 10
+    height = 25
+    width = 25
     grille = genererGrille(height, width, terrain=Terrain.herbe)
     graphe = HexGraphe(grille, height, width)
 
@@ -707,6 +701,7 @@ def question8():
     riviere = Riviere(graphe)
     riviere.placer_riviere(height, width)
 
+    start_time = time.time()
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=True)
 
@@ -728,6 +723,10 @@ def question8():
         color = (random(), random(), random())
         for i in range(len(chemin) - 1):
             hex_grid.add_link(chemin[i], chemin[i + 1], color, thick=2)
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Temps d'exécution: ", execution_time, "secondes")
 
     # print(graphe)
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
@@ -778,7 +777,7 @@ def question9():
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
 
-def temps_q8():
+def temps_q7et8():
     temps1010_4villes = [0.050999, 0.051011, 0.048515, 0.051516, 0.050026]
     temps1010_5villes = [0.082090, 0.102092, 0.085997, 0.081000, 0.084943]
     temps1010_6villes = [0.125685, 0.122998, 0.122709, 0.116552, 0.118040]
@@ -794,6 +793,22 @@ def temps_q8():
     temps2525_4villes = [10.972781, 10.614597, 10.587653, 10.541888, 10.500204]
     temps2525_5villes = [17.698246, 17.421927, 17.756306, 17.549770, 17.544319]
     temps2525_6villes = [26.626592, 26.016775, 25.933700, 25.608901, 25.845022]
+
+    temps1010_4villes_contraintes = [0.078671,0.084613,0.082316]
+    temps1010_5villes_contraintes = [0.135620,0.131671,0.132668]
+    temps1010_6villes_contraintes = [0.209303,0.201038,0.221225]
+
+    temps1515_4villes_contraintes = [0.593379,0.623798,0.613143]
+    temps1515_5villes_contraintes = [0.995398,0.971519,0.983499]
+    temps1515_6villes_contraintes = [1.499744,1.554721,1.572369]
+
+    temps2020_4villes_contraintes = [3.144774,2.992299,3.074309]
+    temps2020_5villes_contraintes = [5.106139,5.110585,5.106297]
+    temps2020_6villes_contraintes = [7.558012,7.532166,7.578397]
+
+    temps2525_4villes_contraintes = [11.172172,10.874993,11.006999]
+    temps2525_5villes_contraintes = [18.633664,18.056229,18.343999]
+    temps2525_6villes_contraintes = [27.496191,27.622741,27.519999]
 
     # Calcul des moyennes
     moyennes_4villes = [
@@ -817,12 +832,36 @@ def temps_q8():
         np.mean(temps2525_6villes)
     ]
 
+    moyennes_4villes_contraintes = [
+        np.mean(temps1010_4villes_contraintes),
+        np.mean(temps1515_4villes_contraintes),
+        np.mean(temps2020_4villes_contraintes),
+        np.mean(temps2525_4villes_contraintes)
+    ]
+
+    moyennes_5villes_contraintes = [
+        np.mean(temps1010_5villes_contraintes),
+        np.mean(temps1515_5villes_contraintes),
+        np.mean(temps2020_5villes_contraintes),
+        np.mean(temps2525_5villes_contraintes)
+    ]
+
+    moyennes_6villes_contraintes = [
+        np.mean(temps1010_6villes_contraintes),
+        np.mean(temps1515_6villes_contraintes),
+        np.mean(temps2020_6villes_contraintes),
+        np.mean(temps2525_6villes_contraintes)
+    ]
+
     tailles_grilles = ["10x10", "15x15", "20x20", "25x25"]
 
     plt.figure(figsize=(10, 6))
-    plt.plot(tailles_grilles, moyennes_4villes, marker='o', label='4 villes')
-    plt.plot(tailles_grilles, moyennes_5villes, marker='s', label='5 villes')
-    plt.plot(tailles_grilles, moyennes_6villes, marker='^', label='6 villes')
+    # plt.plot(tailles_grilles, moyennes_4villes, marker='o', label='4 villes')
+    # plt.plot(tailles_grilles, moyennes_5villes, marker='o', label='5 villes')
+    # plt.plot(tailles_grilles, moyennes_6villes, marker='o', label='6 villes')
+    plt.plot(tailles_grilles, moyennes_4villes_contraintes, label="4 villes (avec contraintes)", marker='s')
+    plt.plot(tailles_grilles, moyennes_5villes_contraintes, label="5 villes (avec contraintes)", marker='s')
+    plt.plot(tailles_grilles, moyennes_6villes_contraintes, label="6 villes (avec contraintes)", marker='s')
 
     plt.title('Temps d\'exécution en fonction de la taille de la grille et du nombre de villes')
     plt.xlabel('Taille de la grille')
@@ -843,7 +882,7 @@ def main():
     #question7()
     #question8()
     #question9()
-    temps_q8()
+    temps_q7et8()
 
     
 
