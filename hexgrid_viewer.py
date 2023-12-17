@@ -418,8 +418,8 @@ class HexGraphe:
                 self.villes[(a, b)]={}
                 i += 1
 
-        print('villes : ', self.get_villes())
-        print(len(self.villes))
+        # print('villes : ', self.get_villes())
+        # print(len(self.villes))
 
     def djikstra(self,s0,contraintes):
         d={}
@@ -468,7 +468,7 @@ class HexGraphe:
         Va de b à a
         """
         pred, d = self.djikstra(a,contraintes)
-        print(pred,d)
+        #print(pred,d)
         tmp=b
         l=[]
         poid=0
@@ -507,8 +507,7 @@ class HexGraphe:
         for i in self.get_villes():
             uf.makeSet(i)
 
-        #LAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        print("aaa")
+        #print("aaa")
         liste_villes=self.get_villes()
         for i in range(len(self.villes)):
 
@@ -609,14 +608,14 @@ def question5a():
     width = 10
     grille = genererGrille(height, width)
     graphe = HexGraphe(grille, height, width)
-    print(graphe)
-    print(graphe.get_max_altitude())
+    #print(graphe)
+    #print(graphe.get_max_altitude())
 def question5b():
     height = 10
     width = 10
     grille = genererGrille(height, width, Terrain.neige)
     graphe = HexGraphe(grille, height, width)
-    print(graphe)
+    #print(graphe)
     hex_grid = HexGridViewer(width, height)
 
 
@@ -768,7 +767,7 @@ def question9():
 
     chemins = graphe.kruskalbien()
     for chemin in chemins:
-        print(chemin)
+        #print(chemin)
         path = chemin[3]
         for i in range(len(path) - 1):
             hex_grid.add_link(path[i], path[i + 1], "red", thick=1)
@@ -888,16 +887,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# # Quel algorithme utiliser pour générer une zone régulière qui s'étend sur la carte (i.e. toutes les cases à
-# distance $i$ d'une case)?
-
-# # Quel algorithme permettrait de tracer des rivières à partir d'un point donné sur la carte, en ajoutant une
-# contrainte d'altitude descendante en prenannt le chemin le plus long possible ?
-
-# # Quel algorithme utiliser pour aller d'un point A à un point B ?
-
-# # Quel algorithme utiliser pour créer un réseau de routes le moins couteux possible entre x villes, pour qu'elles
-# sont toutes interconnectées ?
-
-##
