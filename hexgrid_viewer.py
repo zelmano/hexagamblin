@@ -24,6 +24,8 @@ from matplotlib.patches import Patch
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
+import time
+
 from Terrain import Terrain
 from Rivieres import Riviere
 
@@ -671,8 +673,12 @@ def question7():
     riviere = Riviere(graphe)
     riviere.placer_riviere(height, width)
 
+    start_time = time.time()
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=False)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print("Temps d'exécution: ", execution_time, "secondes")
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
@@ -771,6 +777,62 @@ def question9():
     # print(graphe)
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
+
+def temps_q8():
+    temps1010_4villes = [0.050999, 0.051011, 0.048515, 0.051516, 0.050026]
+    temps1010_5villes = [0.082090, 0.102092, 0.085997, 0.081000, 0.084943]
+    temps1010_6villes = [0.125685, 0.122998, 0.122709, 0.116552, 0.118040]
+
+    temps1515_4villes = [0.546068, 0.578299, 0.539082, 0.512379, 0.532030]
+    temps1515_5villes = [0.842504, 0.876848, 0.908285, 0.890366, 0.939723]
+    temps1515_6villes = [1.285703, 1.287045, 1.312142, 1.316426, 1.388403]
+
+    temps2020_4villes = [2.793331, 2.861040, 2.892708, 2.906991, 2.855944]
+    temps2020_5villes = [4.906765, 4.709135, 4.773723, 4.752943, 4.827802]
+    temps2020_6villes = [6.916599, 6.904661, 6.845615, 7.017637, 7.036833]
+
+    temps2525_4villes = [10.972781, 10.614597, 10.587653, 10.541888, 10.500204]
+    temps2525_5villes = [17.698246, 17.421927, 17.756306, 17.549770, 17.544319]
+    temps2525_6villes = [26.626592, 26.016775, 25.933700, 25.608901, 25.845022]
+
+    # Calcul des moyennes
+    moyennes_4villes = [
+        np.mean(temps1010_4villes),
+        np.mean(temps1515_4villes),
+        np.mean(temps2020_4villes),
+        np.mean(temps2525_4villes)
+    ]
+
+    moyennes_5villes = [
+        np.mean(temps1010_5villes),
+        np.mean(temps1515_5villes),
+        np.mean(temps2020_5villes),
+        np.mean(temps2525_5villes)
+    ]
+
+    moyennes_6villes = [
+        np.mean(temps1010_6villes),
+        np.mean(temps1515_6villes),
+        np.mean(temps2020_6villes),
+        np.mean(temps2525_6villes)
+    ]
+
+    tailles_grilles = ["10x10", "15x15", "20x20", "25x25"]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(tailles_grilles, moyennes_4villes, marker='o', label='4 villes')
+    plt.plot(tailles_grilles, moyennes_5villes, marker='s', label='5 villes')
+    plt.plot(tailles_grilles, moyennes_6villes, marker='^', label='6 villes')
+
+    plt.title('Temps d\'exécution en fonction de la taille de la grille et du nombre de villes')
+    plt.xlabel('Taille de la grille')
+    plt.ylabel('Temps d\'exécution moyen (s)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    return 1
+
+
 def main():
     #question123()
     #question4_propagation()
@@ -780,7 +842,8 @@ def main():
     #question6()
     #question7()
     #question8()
-    question9()
+    #question9()
+    temps_q8()
 
     
 
