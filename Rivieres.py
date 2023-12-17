@@ -4,9 +4,9 @@ from Terrain import Terrain
 class Riviere:
     def __init__(self, hexgrid):
         self.hexgrid = hexgrid
-        self.proba_embranch = 0.1
+        self.proba_embranch = 0.01
 
-    def dfs_riviere(self,n,proba_embranch=None,embr=False):
+    def dfs_riviere(self,n,proba_embranch=None, embranche=False):
         if proba_embranch==None:
             proba_embranch=self.proba_embranch
 
@@ -17,7 +17,7 @@ class Riviere:
         pred[n]="/"
 
         branches=[]
-
+        embr=False
         while visited:
             tmp = visited.pop()
             result.append(tmp)
@@ -28,21 +28,18 @@ class Riviere:
                 if i not in visited and i not in result and self.hexgrid.get_altitude(i)<=self.hexgrid.get_altitude(tmp):
                     pred[i] = tmp
                     visited.append(i)
-
-                    if random() < proba_embranch:
-                        branches.append(i)
+                    """
+                    if random() < proba_embranch and not embranche and not embr:
+                        if self.dfs_riviere(i, proba_embranch, embranche=True) == "oui":
+                            embr = True
+                            print("ouiiiiiiiiiii", i)
                     else:
-                        proba_embranch+=0.1
+                        proba_embranch*=3
+                    """
 
         #print("Prédécesseurs : ", pred)
 
         #embranchements
-        proba_embranch=0.1
-        for b in branches:
-            proba_embranch += 0.1
-            if random()<proba_embranch:
-                self.dfs_riviere(b,proba_embranch,embr=True)
-
 
         #rivière principale
         liste=[]
@@ -58,23 +55,29 @@ class Riviere:
                 #print(liste)
         #print(liste)
 
-        
-        # if len(liste)<=2:
-        #     return False
-
-        # for i in liste:
-        #     self.nodes[i]["terrain"]=Terrain.eau
-        # return True
-
-        if embr==True:
-            for i in liste:
-                self.hexgrid.set_terrain(i, Terrain.eau)
-            return True
         if len(liste) > 4:
             for i in liste:
                 self.hexgrid.set_terrain(i, Terrain.eau)
+            tmp=None
+            while tmp is None or tmp in liste:
+                tmp=result[randint(6,len(result)-1)]
+
+            print("tmp", tmp)
+            liste_tmp = []
+            while pred[tmp] != "/":
+                liste_tmp.append(tmp)
+                tmp = pred[tmp]
+            liste_tmp.append(tmp)
+            for i in liste_tmp:
+                self.hexgrid.set_terrain(i, Terrain.eau)
+
             return True
 
+        """
+        if len(liste)>1 and embranche:
+            for i in liste:
+                self.hexgrid.set_terrain(i, Terrain.eau)
+        """
         return False
 
 
@@ -82,16 +85,9 @@ class Riviere:
         nb_riviere = 1+int(height * width / 100)
         #print("nb riviere",nb_riviere)
 
-        """
-        for i in range(nb_riviere):
-            point = (randint(0, height - 1), randint(0, width - 1))
-            riviere=self.dfs_riviere(point)
-            if riviere==False:
-                i-=1
-        """
-
         nb_rivieres_placees=0
         while nb_rivieres_placees < nb_riviere:
             point = (randint(0, height - 1), randint(0, width - 1))
             if self.dfs_riviere(point):
                 nb_rivieres_placees += 1#on compte que les succes de plaçage de rivière
+                print(point)

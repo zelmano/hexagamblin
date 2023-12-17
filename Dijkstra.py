@@ -54,9 +54,10 @@ class Dijkstra:
     chemin = []
     poids = 0
     #tant que la ville actuelle n'est pas la ville de départ:
-    while tmp != a:
+    while tmp != a and tmp:
       chemin.append(tmp)
-      poids += d[tmp]
+      if d[tmp]:
+        poids += d[tmp]
       tmp = pred[tmp]
 
     chemin.append(a)

@@ -256,6 +256,7 @@ class HexGraphe:
         self.width = width
         for node in self.get_nodes():
             nodes[node]["neighbors"] = self.get_neighbours(node[0],node[1])
+        self.villes=None
 
 
     def get_neighbours(self, x: int, y: int) -> List[Coords]:
@@ -546,55 +547,43 @@ class UnionFind():
         if xr!=yr:
             self.parent[xr]=yr
 
-
-
-def main():
-
-
-    #questions 1, 2 et 3
-    #ok
-    """
+def question123():
     height = 10
     width = 10
     alpha_spread = 0.5
-    grille = genererGrille(height,width)
-    graphe = HexGraphe(grille,height,width)
+    grille = genererGrille(height, width)
+    graphe = HexGraphe(grille, height, width)
 
-    hex_grid = HexGridViewer(width,height)
-    
-    #affichage de la grille :
-    for x,y in graphe.get_nodes():
-        hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
-        #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
+    hex_grid = HexGridViewer(width, height)
 
-    #dictionnaire d'alias couleur nom de terrain pour la légende
+    # affichage de la grille :
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        # coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * alpha_spread) / 1000 + alpha_spread)
+
+    # dictionnaire d'alias couleur nom de terrain pour la légende
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(alias=alias_terrains)
-    """
 
-
-    #question 4 (faut laisser au dessus et la faire à part, pareil pour chaque question)
-    """
+def question4_propagation():
     height = 10
     width = 10
-    grille = genererGrille(height,width,terrain=Terrain.herbe)
-    a = HexGraphe(grille,height,width)
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    a = HexGraphe(grille, height, width)
 
-    hex_grid = HexGridViewer(width,height)
-    
-    propa=a.bfs_propagation((4,4),3)
-    #print(propa)
+    hex_grid = HexGridViewer(width, height)
+
+    propa = a.bfs_propagation((4, 4), 3)
+    # print(propa)
     for coords, long in propa:
-        x,y=coords
+        x, y = coords
         hex_grid.add_color(x, y, 'red')
-        hex_grid.add_alpha(x,y,1-long*0.2)
+        hex_grid.add_alpha(x, y, 1 - long * 0.2)
     hex_grid.show(debug_coords=True)
-    """
-    
 
-    """
-    #adaptation avec des montagnes :
+def question4_adaptation_montagne():
+    # adaptation de la propagation avec des montagnes :
     height = 20
     width = 20
     grille = genererGrille(height, width, terrain=Terrain.neige)
@@ -603,121 +592,102 @@ def main():
 
     hex_grid = HexGridViewer(width, height)
 
-    graphe.propagation_terrain((4, 4), 3,Terrain.montagne)
+    graphe.propagation_terrain((4, 4), 3, Terrain.montagne)
 
     graphe.propagation_terrain((15, 10), 2, Terrain.montagne)
 
     for x, y in graphe.get_nodes():
-
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*(4/5)) / 1000 + 0.2)
-    
-    hex_grid.show(debug_coords=False)
-    """
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (4 / 5)) / 1000 + 0.2)
 
+    hex_grid.show(graphe, debug_coords=False, show_altitude=True)
 
-
-    #question 5a
-    #ok
-    """
+def question5a():
     height = 10
     width = 10
     grille = genererGrille(height, width)
     graphe = HexGraphe(grille, height, width)
     print(graphe)
-
-    sommet_max = graphe.get_max_altitude()
-    print(sommet_max)
-    print(graphe.get_node(sommet_max))
-    """
-
-    #question 5b
-    #ok
-    """
-    parcours en profondeur (DFS)
-    """
-
-
-
-    #question 6
-
-    """
-    idee pour quand on generera une map clean aléatoire : 
-    mettre herbe partout :
-    creer x montagnes aléatoirements avec pic le plus haut entre 700 et 1000
-    pour chaque sommet : -si altitude > 900 : mettre neige
-                         -si altitude < 500 : mettre herbe 
-    ensuite on rajoute des rivieres aléatoirement
-    """
-
-
-
-    
-    #affichage de la grille :
-    #for x,y in graphe.get_nodes():
-        #hex_grid.add_color(x,y,graphe.get_terrain((x,y)).value)
-        #coefficient alpha entre alpha_spread et 1 pour une altitude entre 0 et 1000
-        #hex_grid.add_alpha(x, y, (graphe.get_altitude((x,y))*alpha_spread) / 1000 + alpha_spread)
-    
-
-    """
-    height = 40
-    width = 40
-    #alpha_spread = 0.5
-    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    print(graphe.get_max_altitude())
+def question5b():
+    height = 10
+    width = 10
+    grille = genererGrille(height, width, Terrain.neige)
     graphe = HexGraphe(grille, height, width)
-
+    print(graphe)
     hex_grid = HexGridViewer(width, height)
 
-    #graphe.placer_herbe(height,width)
-    graphe.placer_montagnes(height,width)
-    graphe.placer_riviere(height,width)
 
+    riviere = Riviere(graphe)
+    riviere.placer_riviere(height, width)
 
-    for x, y in graphe.get_nodes():
-        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
-        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2/5)
-
-    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
-    hex_grid.show(graphe,debug_coords=False, show_altitude=False, alias=alias_terrains)
-    
-
-    """
-
-
-    """
-    #question 7
-    height = 20
-    width = 20
-    grille = genererGrille(height, width, terrain=Terrain.herbe)
-    graphe = HexGraphe(grille, height, width)
-
-
-    hex_grid = HexGridViewer(width, height)
-
-    # graphe.placer_herbe(height,width)
-    graphe.placer_montagnes(height, width)
-    graphe.placer_riviere(height, width)
-
-    graphe.placer_ville(height,width)
+    graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=False)
 
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
         hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
 
-    for x,y in graphe.get_villes():
+    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+    hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
+
+def question6():
+    """pour generer une map clean aléatoire :
+    mettre herbe partout :
+    creer x montagnes aléatoirements avec pic le plus haut entre 700 et 1000
+    pour chaque sommet : -si altitude > 800 : mettre neige
+                         -si altitude < 500 : mettre herbe
+    ensuite on rajoute des rivieres aléatoirement"""
+    height = 40
+    width = 40
+    # alpha_spread = 0.5
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
+
+    hex_grid = HexGridViewer(width, height)
+
+    # graphe.placer_herbe(height,width)
+    graphe.placer_montagnes(height, width)
+    riviere = Riviere(graphe)
+    riviere.placer_riviere(height, width)
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
+
+    alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
+    hex_grid.show(graphe, debug_coords=False, show_altitude=False, alias=alias_terrains)
+
+def question7():
+    height = 20
+    width = 20
+    grille = genererGrille(height, width, terrain=Terrain.herbe)
+    graphe = HexGraphe(grille, height, width)
+
+    hex_grid = HexGridViewer(width, height)
+
+    # graphe.placer_herbe(height,width)
+    graphe.placer_montagnes(height, width)
+    riviere = Riviere(graphe)
+    riviere.placer_riviere(height, width)
+
+    graphe.placer_ville(height, width)
+    graphe.pcc_villes(contraintes=False)
+
+    for x, y in graphe.get_nodes():
+        hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
+        hex_grid.add_alpha(x, y, (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5)
+
+    for x, y in graphe.get_villes():
         hex_grid.add_symbol(x, y, Circle("darkred"))
 
     for chemin in graphe.get_pcc():
-        for i in range(len(chemin)-1):
-            hex_grid.add_link(chemin[i], chemin[i+1], "black",thick=2)
+        for i in range(len(chemin) - 1):
+            hex_grid.add_link(chemin[i], chemin[i + 1], "black", thick=2)
 
     hex_grid.show(graphe, debug_coords=False, show_altitude=False)
-    """
-    #question 8
 
-    """
+def question8():
     height = 10
     width = 10
     grille = genererGrille(height, width, terrain=Terrain.herbe)
@@ -728,8 +698,8 @@ def main():
     # graphe.placer_herbe(height,width)
     graphe.placer_montagnes(height, width)
 
-    riviere=Riviere(graphe)
-    riviere.placer_riviere(height,width)
+    riviere = Riviere(graphe)
+    riviere.placer_riviere(height, width)
 
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=True)
@@ -737,10 +707,10 @@ def main():
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
 
-        if graphe.nodes[(x,y)]["terrain"]==Terrain.herbe:
-            alpha=(graphe.get_altitude((x, y))*1.75 * (3 / 5)) / 1000 + 2 / 5
-        elif graphe.nodes[(x,y)]["terrain"]==Terrain.montagne:
-            alpha=((graphe.get_altitude((x, y))-300)*2 * (3/5)) / 1000 + 2/5
+        if graphe.nodes[(x, y)]["terrain"] == Terrain.herbe:
+            alpha = (graphe.get_altitude((x, y)) * 1.75 * (3 / 5)) / 1000 + 2 / 5
+        elif graphe.nodes[(x, y)]["terrain"] == Terrain.montagne:
+            alpha = ((graphe.get_altitude((x, y)) - 300) * 2 * (3 / 5)) / 1000 + 2 / 5
         else:
             alpha = (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5
         hex_grid.add_alpha(x, y, alpha)
@@ -753,15 +723,12 @@ def main():
         for i in range(len(chemin) - 1):
             hex_grid.add_link(chemin[i], chemin[i + 1], color, thick=2)
 
-
-    #print(graphe)
+    # print(graphe)
     hex_grid.show(graphe, debug_coords=False, show_altitude=True)
-    """
 
-    #question 9
-
+def question9():
     height = 20
-    width =20
+    width = 20
     grille = genererGrille(height, width, terrain=Terrain.herbe)
     graphe = HexGraphe(grille, height, width)
 
@@ -772,10 +739,9 @@ def main():
     riviere = Riviere(graphe)
     riviere.placer_riviere(height, width)
 
-    """
     graphe.placer_ville(height, width)
     graphe.pcc_villes(contraintes=True)
-    """
+
     for x, y in graphe.get_nodes():
         hex_grid.add_color(x, y, graphe.get_terrain((x, y)).value)
 
@@ -786,10 +752,9 @@ def main():
         else:
             alpha = (graphe.get_altitude((x, y)) * (3 / 5)) / 1000 + 2 / 5
         hex_grid.add_alpha(x, y, alpha)
-    """
+
     for x, y in graphe.get_villes():
         hex_grid.add_symbol(x, y, Circle("darkred"))
-
 
     for chemin in graphe.get_pcc():
         # color = (random(), random(), random())
@@ -802,12 +767,20 @@ def main():
         path = chemin[3]
         for i in range(len(path) - 1):
             hex_grid.add_link(path[i], path[i + 1], "red", thick=1)
-    """
+
     # print(graphe)
     alias_terrains = {terrain.value: terrain.name for terrain in Terrain}
     hex_grid.show(graphe, debug_coords=False, show_altitude=True, alias=alias_terrains)
-
-
+def main():
+    #question123()
+    #question4_propagation()
+    #question4_adaptation_montagne()
+    #question5a()
+    #question5b()
+    #question6()
+    #question7()
+    #question8()
+    question9()
 
     
 
